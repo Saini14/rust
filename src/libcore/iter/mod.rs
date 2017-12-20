@@ -1368,7 +1368,7 @@ impl<I: Iterator, P> Iterator for Filter<I, P> where P: FnMut(&I::Item) -> bool 
     }
 
     #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>) {
+    default fn size_hint(&self) -> (usize, Option<usize>) {
         let (_, upper) = self.iter.size_hint();
         (0, upper) // can't know a lower bound, due to the predicate
     }
@@ -1417,6 +1417,26 @@ impl<I: Iterator, P> Iterator for Filter<I, P> where P: FnMut(&I::Item) -> bool 
         })
     }
 }
+
+use ops::RangeFrom;
+///
+#[unstable(feature="test", issue="0")]
+pub trait FancyIter: Iterator {}
+#[unstable(feature="test", issue="0")]
+impl<T: Step> FancyIter for RangeFrom<T> {}
+
+#[unstable(feature="test", issue="0")]
+impl<I: FancyIter, P: FnMut(&I::Item) -> bool> Iterator for Filter<I, P> {
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, None)
+    }
+}
+
+#[allow(warnings)]
+fn foo() {
+    let foo: isize = (0..).filter(|i| *i < 5).next().unwrap();
+}
+
 
 #[stable(feature = "rust1", since = "1.0.0")]
 impl<I: DoubleEndedIterator, P> DoubleEndedIterator for Filter<I, P>
